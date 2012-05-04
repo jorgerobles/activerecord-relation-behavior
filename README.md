@@ -69,7 +69,7 @@ class User extends CActiveRecord
         );
     }
 }
-
+```
 
 Somewhere in our application code we can do:
 ```php
@@ -103,7 +103,7 @@ Somewhere in our application code we can do:
     $user->profile = new Profile();
     $user->profile->save(); // need this to ensure profile got a primary key
     $user->save();
-
+```
 
 ## You can also…
 
