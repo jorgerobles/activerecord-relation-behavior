@@ -38,6 +38,11 @@ class EActiveRecordRelationBehavior extends CActiveRecordBehavior
 	public $useTransaction=true;
 	/** @var CDbTransaction */
 	private $_transaction;
+	
+	/**
+	 *	Holds relations to be used
+	 */
+	protected $_enabledRelations=null;
 
 	/**
 	 * Declares events and the corresponding event handler methods.
@@ -118,7 +123,7 @@ class EActiveRecordRelationBehavior extends CActiveRecordBehavior
 			/** @var CDbCommandBuilder $commandBuilder */
 			$commandBuilder=$this->owner->dbConnection->commandBuilder;
 
-			foreach($this->owner->relations() as $name => $relation)
+			foreach($this->getRelations() as $name => $relation)
 			{
 				switch($relation[0]) // relation type such as BELONGS_TO, HAS_ONE, HAS_MANY, MANY_MANY
 				{
@@ -355,6 +360,54 @@ class EActiveRecordRelationBehavior extends CActiveRecordBehavior
 		$fks=preg_split('/\s*,\s*/',$matches[2],-1,PREG_SPLIT_NO_EMPTY);
 
 		return array($joinTable, $fks);
+	}
+	
+	
+	/**
+	 *	Scope: Resets the enabled relations to default (Owner's)
+	 *	@return CActiveRecord $owner
+	 */
+	public function resetRelations()
+	{
+		$this->_enabledRelations=null;
+		return $this->owner;
+	}
+	
+	/**
+	 *	Scope: Sets the enabled relations to be used
+	 *	@param String relation names
+	 *	@param String ...
+	 *	
+	 *	@return CActiveRecord $owner
+	 */
+	public function withRelations()
+	{
+		$this->_enabledRelations=func_get_args();
+		return $this->owner;
+	}
+	
+	/**
+	 *	Scope: Exclude relations from owner's to be used
+	 *	@param String relation name
+	 *	@param String ...
+	 *	
+	 *	@return CActiveRecord $owner
+	 */
+	public function withoutRelations()
+	{
+		$this->_enabledRelations=array_diff(array_keys($this->owner->relations()),func_get_args());
+		return $this->owner;
+	}
+	
+	/**
+	 *	Return the enabled relations
+	 *	@return Array filtered owner relations
+	 */
+	protected function getRelations()
+	{
+		if (is_null($this->_enabledRelations))	return $this->owner->relations();
+		
+		return array_intersect_key($this->owner->relations(), array_flip($this->_enabledRelations));
 	}
 }
 
